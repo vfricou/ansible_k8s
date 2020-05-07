@@ -1,0 +1,18 @@
+# Ignore all files in repository
+*
+
+# Add git files
+!.gitignore
+!.gitattributes
+!.gitmodules
+
+# Add Documentation
+!README.md
+
+# Add needed files
+!tasks
+!tasks/**
+!handlers
+!handlers/**
+!vars
+!vars/**
