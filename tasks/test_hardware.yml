@@ -1,0 +1,15 @@
+---
+- name: test_hardware | check CPU requirements
+  fail:
+    msg: "Not enough CPU on host ({{ ansible_processor_vcpus }}), required 2."
+  when: ansible_processor_vcpus|int < 2
+
+- name: test_hardware | check memory requirements
+  fail:
+    msg: "Not enough memory on system ({{ ansible_memtotal_mb }}), require 2GB"
+  when: ansible_memtotal_mb|int < 1837
+
+- name: test_hardware | check swap requirements
+  fail:
+    msg: "Found active swap partition. Install require no active swap."
+  when: ansible_memory_mb['swap']['total']|int > 0

@@ -1,0 +1,21 @@
+---
+- name: import testos.yml
+  import_tasks: testos.yml
+  tags:
+    - check_target
+
+- name: import test_hardware
+  import_tasks: test_hardware.yml
+  tags:
+    - check_target
+
+- name: import kernel_tuning.yml
+  import_tasks: kernel_tuning.yml
+
+- name: import debian.yml
+  import_tasks: debian.yml
+  when: ansible_distribution == "Debian"
+
+- name: import centos.yml
+  import_tasks: centos.yml
+  when: ansible_distribution == "CentOS"

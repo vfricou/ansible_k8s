@@ -1,0 +1,33 @@
+---
+- name: centos | add kubernetes repository
+  yum_repository:
+    name: Kubernetes
+    description: Kubernetes Official repository
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+    gpgkey: "https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+    gpgcheck: yes
+    enabled: yes
+    exclude:
+      - kubelet
+      - kubeadm
+      - kubectl
+
+- name: centos | check selinux status
+  shell: getenforce
+  register: selinux_status
+  changed_when: selinux_status['rc']|int > 0
+
+- name: centos | disable selinux temporary
+  shell: setenforce 0
+  when: selinux_status['stdout'] != "Disabled"
+
+- name: centos | disable selinux permanently
+  selinux:
+    state: disabled
+
+- name: centos | install kubernetes packages
+  yum:
+    disable_excludes: Kubernetes
+    name: "{{ v_kubernetes_packages }}"
+    state: latest
+  notify: restart kubelet

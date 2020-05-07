@@ -1,0 +1,23 @@
+---
+- name: debian | add kubernetes repo gpgkey
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: debian | add kubernetes repository
+  apt_repository:
+    repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+    state: present
+    filename: kubernetes
+
+- name: debian | install kubernetes packages
+  apt:
+    name: "{{ v_kubernetes_packages }}"
+    state: latest
+    update_cache: yes
+  notify: restart kubelet
+
+- name: debian | hold kubernetes packages
+  shell: apt-mark hold {{ item }}
+  with_items:
+    - "{{ v_kubernetes_packages }}"
