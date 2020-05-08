@@ -1,0 +1,37 @@
+---
+#kubeadm token list | tail -1 | awk '{print $1}'
+- block:
+  - name: k8s-node-join | get join token from primary master
+    shell: kubeadm token list | tail -1 | awk '{print $1}'
+    register: k8s_join_token
+    failed_when: k8s_join_token['rc'] > 0
+    changed_when: k8s_join_token['rc'] > 0
+    run_once: True
+
+  - name: k8s-node-join | get certificate hash
+    shell: openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | \
+           openssl rsa -pubin -outform der 2>/dev/null | \
+           openssl dgst -sha256 -hex | sed 's/^.* //'
+    register: k8s_certificate_hash
+    failed_when: k8s_certificate_hash['rc'] > 0
+    changed_when: k8s_certificate_hash['rc'] > 0
+    run_once: True
+
+  when: k8s_role == "master" and k8s_primary == "yes"
+
+#k8s_join_token['stdout']
+#k8s_certificate_hash['stdout']
+#d_k8s_prim_master_addr
+#6443
+- name: k8s-node-join | stat kubelet file
+  stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: node_kubelet
+
+- block:
+  - name: k8s-node-join | join node to cluster
+    shell: kubeadm join \
+           --token {{ k8s_join_token['stdout'] }} \
+           {{ d_k8s_prim_master_addr }}:6443 \
+           --discovery-token-ca-cert-hash sha256:{{ k8s_certificate_hash['stdout'] }}
+  when: k8s_role == "node"

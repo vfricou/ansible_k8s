@@ -1,0 +1,62 @@
+---
+## Perform kubernetes cluster init if needed
+- name: k8s-cluster-init | stat kubeconfig file
+  stat:
+    path: "{{ v_kube_config_dir }}/config"
+  register: k8s_conf_file
+
+- name: k8s-cluster-init | create .kube folder and required folders
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: 0700
+    state: directory
+  with_items:
+    - "{{ v_kube_config_dir }}"
+    - "{{ v_kube_config_dir }}/manifests"
+
+- block:
+  - name: k8s-cluster-init | perform cluster initialization
+    shell: kubeadm init \
+           --pod-network-cidr=192.168.0.0/16 \
+           --apiserver-advertise-address {{ d_k8s_prim_master_addr }} 2>&1 > /root/k8s-init.log
+
+  - name: k8s-cluster-init | copy kube config
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: "{{ v_kube_config_dir }}/config"
+      owner: root
+      group: root
+      mode: 0600
+      backup: yes
+      remote_src: yes
+  when: k8s_conf_file['stat']['exists'] == false
+
+## Perform calico CNI deployment if needed
+- name: k8s-cluster-init | stat calico deployment state
+  stat:
+    path: "{{ v_kube_config_dir }}/manifests/calico.deployed"
+  register: calico_deployment
+
+- block:
+  - name: k8s-cluster-init | download calico CNI manifest
+    get_url:
+      dest: "{{ v_kube_config_dir }}/manifests/calico.yaml"
+      url: "https://docs.projectcalico.org/v{{ d_calico_version }}/manifests/calico.yaml"
+      backup: yes
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: k8s-cluster-init | deploy calico CNI
+    shell: kubectl apply -f "{{ v_kube_config_dir }}/manifests/calico.yaml"
+
+  - name: k8s-cluster-init | specify calico is deployed
+    copy:
+      content: ''
+      dest: "{{ v_kube_config_dir }}/manifests/calico.deployed"
+      group: root
+      owner: root
+      mode: 0600
+  when: calico_deployment['stat']['exists'] == false

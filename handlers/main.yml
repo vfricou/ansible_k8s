@@ -1,6 +1,6 @@
 ---
 - name: restart kubelet
   service:
-    state: started
+    state: restarted
     enabled: yes
     name: kubelet

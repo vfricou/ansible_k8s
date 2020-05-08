@@ -19,3 +19,10 @@
 - name: import centos.yml
   import_tasks: centos.yml
   when: ansible_distribution == "CentOS"
+
+- name: import k8s-cluster-init.yml
+  import_tasks: k8s-cluster-init.yml
+  when: k8s_role == "master" and k8s_primary == "yes"
+
+- name: import k8s-node-join.yml
+  import_tasks: k8s-node-join.yml

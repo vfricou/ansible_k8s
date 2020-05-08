@@ -1,0 +1,12 @@
+---
+- name: docker_tuning | configure docker cgroups
+  copy:
+    src: etc-docker-daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart docker
+
+- name: docker_tuning | flush handlers
+  meta: flush_handlers

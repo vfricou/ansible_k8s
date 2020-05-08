@@ -3,3 +3,4 @@ v_kubernetes_packages:
   - kubeadm
   - kubectl
   - kubelet
+v_kube_config_dir: /root/.kube
