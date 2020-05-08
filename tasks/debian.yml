@@ -16,8 +16,10 @@
     state: latest
     update_cache: yes
   notify: restart kubelet
+  when: perform_action == "install"
 
 - name: debian | hold kubernetes packages
   shell: apt-mark hold {{ item }}
   with_items:
     - "{{ v_kubernetes_packages }}"
+  when: perform_action == "install"

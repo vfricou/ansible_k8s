@@ -31,3 +31,4 @@
     name: "{{ v_kubernetes_packages }}"
     state: latest
   notify: restart kubelet
+  when: perform_action == "install"
