@@ -19,7 +19,7 @@
 - block:
   - name: k8s-cluster-init | perform cluster initialization
     shell: kubeadm init \
-           --pod-network-cidr=192.168.0.0/16 \
+           --pod-network-cidr={{ d_k8s_pods_network }} \
            --apiserver-advertise-address {{ d_k8s_prim_master_addr }} 2>&1 > /root/k8s-init.log
 
   - name: k8s-cluster-init | copy kube config
